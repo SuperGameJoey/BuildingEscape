@@ -12,8 +12,6 @@ UOpenDoor::UOpenDoor()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 
@@ -31,7 +29,11 @@ void UOpenDoor::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("%s has an Open Door component, but does not have a Pressure Plate set!"), *GetOwner()->GetName());
 	}
 
-	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
+	DoorOpenSound = GetOwner()->FindComponentByClass<UAudioComponent>();
+	if (DoorOpenSound == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Could not find an Audio Component on %s"), *GetOwner()->GetName())
+	}
 }
 
 
@@ -79,6 +81,16 @@ void UOpenDoor::OpenDoor(float DeltaTime)
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
 	DoorRotation.Yaw = CurrentYaw;
 	GetOwner()->SetActorRotation(DoorRotation);
+
+	bCloseDoorSound = false;
+
+	// play sound
+	if (DoorOpenSound == nullptr) { return; }
+	if (!bOpenDoorSound)
+	{
+		DoorOpenSound->Play();
+		bOpenDoorSound = true;
+	}
 }
 
 void UOpenDoor::CloseDoor()
@@ -87,11 +99,23 @@ void UOpenDoor::CloseDoor()
 	ClosedRotation.Yaw = InitialYaw;
 	GetOwner()->SetActorRotation(ClosedRotation);
 	CurrentYaw = 0;
+
+	bOpenDoorSound = false;
+
+	// play sound
+	if (DoorOpenSound == nullptr) { return; }
+	if (!bCloseDoorSound)
+	{
+		DoorOpenSound->Play();
+		bCloseDoorSound = true;
+	}
 }
 
 float UOpenDoor::TotalMassOfActors() const
 {
 	float TotalMass = 0.f;
+
+	if (PressurePlate == nullptr) { return TotalMass; }
 
 	// Find all overlapping Actors
 	TArray<AActor*> OverlappingActors;
@@ -101,7 +125,7 @@ float UOpenDoor::TotalMassOfActors() const
 	for (AActor* Actor : OverlappingActors)
 	{
 		TotalMass += Actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
-	}	
+	}
 
 	return TotalMass;
 }

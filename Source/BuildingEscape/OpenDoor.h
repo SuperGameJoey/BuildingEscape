@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Components/AudioComponent.h"
 #include "Engine/TriggerVolume.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -14,7 +15,6 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDINGESCAPE_API UOpenDoor : public UActorComponent
 {
 	GENERATED_BODY()
-
 
 public:	
 	// Sets default values for this component's properties
@@ -42,10 +42,7 @@ private:
 	float CurrentYaw = 0.f;
 
 	UPROPERTY(EditAnywhere)
-	ATriggerVolume* PressurePlate;
-
-	UPROPERTY(EditAnywhere)
-	AActor* ActorThatOpens;
+	ATriggerVolume* PressurePlate = nullptr;
 
 	float DoorLastOpened = 0.f;
 	
@@ -54,5 +51,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float DoorOpenSpeed = 0.5f;
-		
+
+	UPROPERTY()
+	UAudioComponent* DoorOpenSound = nullptr;
+	
+	bool bOpenDoorSound = false;
+	bool bCloseDoorSound = false;
 };
